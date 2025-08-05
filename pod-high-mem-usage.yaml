@@ -1,0 +1,16 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: pod-high-memory-usage
+  namespace: default
+spec:
+  groups:
+    - name: resource-alerts
+      rules:
+        - alert: HighMemoryUsage
+          expr: (sum(container_memory_working_set_bytes{namespace="default",container!="",pod!=""}) by (pod) / sum(kube_pod_container_resource_limits_memory_bytes{namespace="default"}) by (pod)) > 0.1
+          for: 1m
+          labels:
+            severity: warning
+          annotations:
+            message: "Pod {{ $labels.pod }} in {{ $labels.namespace }} is using more than 10% of its memory limit for 1 minute."
